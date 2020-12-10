@@ -35,3 +35,23 @@ class UserChangeForm(forms.ModelForm):
 
     def clean_password(self):
         return self.initial['password']
+
+
+class UserLoginForm(forms.Form):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class':'form-control'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class':'form-control'}))
+
+
+class UserRegisterationForm(forms.Form):
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class':'form-control'}))
+    name = forms.CharField(label='Name', widget=forms.TextInput(attrs={'class':'form-control'}))
+    password1 = forms.CharField(label='Password', max_length=32, widget=forms.PasswordInput(attrs={'class':'form-control'}))
+    password2 = forms.CharField(label='Password Confirm', max_length=32, widget=forms.PasswordInput(attrs={'class':'form-control'}))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        p1 = cleaned_data.get('password1')
+        p2 = cleaned_data.get('password2')
+        if p1 and p2:
+            if p1 != p2:
+                raise forms.ValidationError("Your passwords didn't match")
