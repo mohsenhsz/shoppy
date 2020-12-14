@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h3>{{ order.get_total_price }}</h3>
+    <a href="{% url 'orders:payment' order.id order.get_total_price %}" class="btn btn-primary">Pay</a>
+{% endblock %}
