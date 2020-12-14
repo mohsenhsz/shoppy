@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Order, OrderItem
+from django.views.decorators.http import require_POST
+from .models import Order, OrderItem, Copoun
 from cart.cart import Cart
 from suds.client import Client
 from django.http import HttpResponse
 from django.contrib import messages
-
+from .forms import CopounForm
+from django.utils import timezone
 
 @login_required
 def order_create(request):
@@ -20,7 +22,8 @@ def order_create(request):
 @login_required
 def order_details(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    return render(request, 'orders/details.html', {'order':order})
+    form = CopounForm()
+    return render(request, 'orders/details.html', {'order':order, 'form':form})
 
 
 MERCHANT = 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
@@ -56,3 +59,21 @@ def verify(request):
             return HttpResponse('Transaction failed.\nStatus: ' + str(result.Status))
     else:
         return HttpResponse('Transaction failed or canceled by user')
+
+
+@require_POST
+def copoun_apply(request, order_id):
+    now = timezone.now()
+    form = CopounForm(request.POST)
+    if form.is_valid():
+        code = form.cleaned_data['code']
+        try:
+            copoun = Copoun.objects.get(code__iexact=code, valid_from__lte=now, valid_to__gte=now)
+            order = Order.objects.get(id=order_id)
+            order.discount = copoun.percent
+            order.save()
+            return redirect('orders:details', order_id)
+        except copoun.DoesNotExist:
+            messages.error(request, 'Copoun dose not exsit', 'danger')
+            return redirect('orders:details', order_id)
+    return redirect('orders:details', order_id)

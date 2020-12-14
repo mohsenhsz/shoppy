@@ -8,4 +8,5 @@ urlpatterns = [
     path('<int:order_id>/', views.order_details, name='details'),
     path('<int:order_id>/<int:price>/', views.payment, name='payment'),
     path('verify/', views.verify, name='verify'),
+    path('copoun_apply/<int:order_id>', views.copoun_apply, name='copoun_apply'),
 ]
