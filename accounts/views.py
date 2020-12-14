@@ -6,6 +6,7 @@ from django.contrib import messages
 
 
 def user_login(request):
+    next = request.GET.get('next')
     if request.method == 'POST':
         form = UserLoginForm(request.POST)
         if form.is_valid():
@@ -13,6 +14,8 @@ def user_login(request):
             user = authenticate(request, email=cd['email'], password=cd['password'])
             if user is not None:
                 login(request, user)
+                if next:
+                    return request(next)
                 messages.success(request, 'You logged in successfully', 'success')
                 return redirect('shop:home')
             else:
